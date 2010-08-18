@@ -13,9 +13,10 @@ use Getopt::Std;
 use vars qw/ $opt_n $opt_T $opt_D $opt_u $opt_p $opt_f $opt_e $opt_l $opt_d $opt_h $opt_t $opt_v $opt_x $opt_z /;
 
 use FTN::Database qw(&open_ftndb &close_ftndb);
+use FTN::Database::Nodelist qw(&create_ftnnode_index &drop_ftnnode_index);
 use FTN::Log qw(&logging);
 
-our $VERSION = 0.2;
+our $VERSION = 0.3;
 
 getopts('n:T:D:u:p:f:l:d:t:ehvxz:');
 
@@ -177,7 +178,7 @@ my $point  = 0;
 my $region = 0;
 
 # connect to database
-$dbh = open_ftndb($dbtype, $dbname, $dbuser, $dbpass);
+$dbh = FTN::Database::open_ftndb($dbtype, $dbname, $dbuser, $dbpass);
 
 #
 if ($opt_v) {
@@ -197,11 +198,8 @@ $dbh->do("$sql_stmt ")
   or die logging($Logfile, $progid, $DBI::errstr);
 
 # drop the old nodelist table index, if it exists.
-$sql_stmt = "DROP INDEX IF EXISTS ftnnode";
-#print " $sql_stmt ";
-$dbh->do("$sql_stmt ");
 logging($Logfile, $progid, "Dropping existing nodelist table index if it already exists.");
-
+FTN::Database::Nodelist::drop_ftnnode_index($dbh);
 
 if ($opt_v) {
     logging($Logfile, $progid, "Loading database from nodelist $nlfile");
@@ -304,19 +302,14 @@ if ($opt_v) {    #
     logging($Logfile, $progid, "Create ftnnode index");
 }
 # Recreate ftnnode Index
-$sql_stmt = "CREATE INDEX ftnnode ";
-$sql_stmt .= "ON $tblname (zone,net,node,point,domain) ";
-##print " $sql_stmt ";
-#	Execute the Create Index SQL statment
-$dbh->do( "$sql_stmt " )
-    or die logging($Logfile, $progid, $DBI::errstr);
+FTN::Database::Nodelist::create_ftnnode_index($dbh, $tblname);
 
 if ($opt_v) {    #
     logging($Logfile, $progid, "Closing database");
 }
 
 # disconnect from database
-close_ftndb($dbh);
+FTN::Database::close_ftndb($dbh);
 
 close NODELIST;
 
@@ -331,7 +324,7 @@ exit();
 # Help message
 ############################################
 sub help {
-    print "\nUsage: nl2db.pl -n nldir [-t tablename] [-T dbtype] [-D dbname] [-D dbname] [-u dbuser] [-p dbpass] [-f nlfile] [-l logfile] [-d domain] [-e] [-v] [-x] [-z zonenum]...\n";
+    print "\nUsage: nl2ftndb.pl -n nldir [-t tablename] [-T dbtype] [-D dbname] [-D dbname] [-u dbuser] [-p dbpass] [-f nlfile] [-l logfile] [-d domain] [-e] [-v] [-x] [-z zonenum]...\n";
     print "    -n nldir = nodelist directory...\n";
     print "    [-t tablename] = Nodelist table name;  defaults to 'Nodelist'.\n\n";
     print "    [-T dbtype] = database type;  defaults to 'SQLite'.\n\n";

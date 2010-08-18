@@ -2,6 +2,7 @@ package FTN::Database::Nodelist;
 
 use warnings;
 use strict;
+use Carp qw( croak );
 
 =head1 NAME
 
@@ -9,11 +10,11 @@ FTN::Database::Nodelist - Fidonet/FTN Nodelist SQL Database operations.
 
 =head1 VERSION
 
-Version 0.01
+Version 0.03
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.03';
 
 
 =head1 SYNOPSIS
@@ -31,23 +32,117 @@ Perhaps a little code snippet.
 
 =head1 EXPORT
 
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
+The following functions are available in this module:  create_nodelist_table(),
+drop_nodelist_table(), create_ftnnode_index().
 
 =head1 FUNCTIONS
 
-=head2 function1
+=head2 create_nodelist_table
+
+Syntax:  create_nodelist_table($db_handle, $table_name);
+
+Create an FTN Nodelist table in an SQL database being used for Fidonet/FTN
+processing, where $db_handle is an existing open database handle and $table_name
+is the name of the table to be created.
 
 =cut
 
-sub function1 {
+sub create_nodelist_table {
+
+    my($db_handle, $table_name) = @_;
+
+    my $sql_stmt = "CREATE TABLE $table_name( ";
+
+    $sql_stmt .= "id	INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, ";
+    $sql_stmt .= "type      VARCHAR(6) DEFAULT '' NOT NULL, ";
+    $sql_stmt .= "zone      SMALLINT  DEFAULT '1' NOT NULL, ";
+    $sql_stmt .= "net       SMALLINT  DEFAULT '1' NOT NULL, ";
+    $sql_stmt .= "node      SMALLINT  DEFAULT '1' NOT NULL, ";
+    $sql_stmt .= "point     SMALLINT  DEFAULT '0' NOT NULL, ";
+    $sql_stmt .= "region    SMALLINT  DEFAULT '0' NOT NULL, ";
+    $sql_stmt .= "name      VARCHAR(32) DEFAULT '' NOT NULL, ";
+    $sql_stmt .= "location  VARCHAR(32) DEFAULT '' NOT NULL, ";
+    $sql_stmt .= "sysop     VARCHAR(32) DEFAULT '' NOT NULL, ";
+    $sql_stmt .= "phone     VARCHAR(20) DEFAULT '000-000-000-000' NOT NULL, ";
+    $sql_stmt .= "baud      CHAR(6) DEFAULT '300' NOT NULL, ";
+    $sql_stmt .= "flags     VARCHAR(64) DEFAULT ' ' NOT NULL, ";
+    $sql_stmt .= "domain    VARCHAR(8) DEFAULT 'fidonet' NOT NULL, ";
+    $sql_stmt .= "source    VARCHAR(16) DEFAULT 'local' NOT NULL, ";
+    $sql_stmt .= "updated   TIMESTAMP(14) DEFAULT '' NOT NULL ";
+    $sql_stmt .= ") ";
+
+    $db_handle->do("$sql_stmt ") or croak($DBI::errstr);
+
+    return(0);
+
 }
 
-=head2 function2
+=head2 drop_nodelist_table
+
+Syntax:  drop_nodelist_table($db_handle, $table_name);
+
+Drop an FTN Nodelist table from an SQL database being used for Fidonet/FTN
+processing if it exists, where $db_handle is an existing open database handle
+and $table_name is the name of the table to be dropped.
 
 =cut
 
-sub function2 {
+sub drop_nodelist_table {
+
+    my($db_handle, $table_name) = @_;
+
+    my $sql_stmt = "DROP TABLE IF EXISTS $table_name";
+
+    $db_handle->do("$sql_stmt") or croak($DBI::errstr);
+
+    return(0);
+    
+}
+
+=head2 create_ftnnode_index
+
+Syntax:  create_ftnnode_index($db_handle, $table_name);
+
+Create an index named ftnnode on an FTN Nodelist table in an SQL database being
+used for Fidonet/FTN processing, where $db_handle is an existing open database
+handle and $table_name is the name of the table that is being indexed.  The
+index is created on the following fields:  zone, net, node, point, and domain.
+
+=cut
+
+sub create_ftnnode_index {
+
+    my($db_handle, $table_name) = @_;
+
+    my $sql_stmt = "CREATE INDEX ftnnode ";
+    $sql_stmt .= "ON $table_name (zone,net,node,point,domain) ";
+
+    $db_handle->do("$sql_stmt") or croak($DBI::errstr);
+
+    return(0);
+    
+}
+
+=head2 drop_ftnnode_index
+
+Syntax:  drop_ftnnode_index($db_handle);
+
+Drop an index named ftnnode on an FTN Nodelist table in an SQL database being
+used for Fidonet/FTN processing if it exists, where $db_handle is an existing
+open database handle.
+
+=cut
+
+sub drop_ftnnode_index {
+
+    my $db_handle = shift;
+
+    my $sql_stmt = "DROP INDEX IF EXISTS ftnnode";
+
+    $db_handle->do("$sql_stmt") or croak($DBI::errstr);
+
+    return(0);
+    
 }
 
 =head1 AUTHOR
