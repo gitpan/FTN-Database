@@ -12,7 +12,9 @@ use strict;
 use Getopt::Std;
 use vars qw/ $opt_n $opt_o $opt_t $opt_T $opt_D $opt_u $opt_p $opt_h $opt_v $opt_x $opt_z /;
 
-our $VERSION = 0.1;
+use FTN::Database qw(&open_ftndb &close_ftndb);
+
+our $VERSION = 0.2;
 
 my ( $dbtype, $dbname, $dbuser, $dbpass, $tblname, $dbh, $sql_stmt, $ZoneNum, $NetNum, $ListFile );
 
@@ -130,7 +132,7 @@ else {
 
 
 # connect to database
-open_ftndb();
+$dbh = open_ftndb($dbtype, $dbname, $dbuser, $dbpass);
 
 # build Select query sql statement
 $sql_stmt = "SELECT * FROM $tblname WHERE zone = $ZoneNum and net = $NetNum ";
@@ -159,39 +161,7 @@ $sth->finish;
 undef $sth;
 
 # disconnect from database
-close_ftndb();
+close_ftndb($dbh);
 
 exit();
 
-
-############################################
-# open FTN sqlite database for operations
-############################################
-sub open_ftndb {
-
-    # Open message database
-    #   Assumes that $dbname, $dbuser, & $dbpass
-    # have been set.  $dbuser must already
-    # have the priveledges to create a table.
-
-    if ($opt_v) { print "Opening FTN database\n" }
-
-    use DBI;
-
-    ( $dbh = DBI->connect( "dbi:$dbtype:dbname=$dbname", $dbuser, $dbpass ) )
-      or die print "$DBI::errstr\n";
-
-}
-
-############################################
-# Close FTN DB
-############################################
-sub close_ftndb {
-
-    #
-    if ($opt_v) { print "Closing FTN database\n" }
-
-    ( $dbh->disconnect )
-      or die print "$DBI::errstr\n";
-
-}

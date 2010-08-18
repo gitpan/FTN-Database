@@ -12,9 +12,10 @@ use strict;
 use Getopt::Std;
 use vars qw/ $opt_n $opt_T $opt_D $opt_u $opt_p $opt_f $opt_e $opt_l $opt_d $opt_h $opt_t $opt_v $opt_x $opt_z /;
 
+use FTN::Database qw(&open_ftndb &close_ftndb);
 use FTN::Log qw(&logging);
 
-our $VERSION = 0.1;
+our $VERSION = 0.2;
 
 getopts('n:T:D:u:p:f:l:d:t:ehvxz:');
 
@@ -176,7 +177,7 @@ my $point  = 0;
 my $region = 0;
 
 # connect to database
-open_ftndb();
+$dbh = open_ftndb($dbtype, $dbname, $dbuser, $dbpass);
 
 #
 if ($opt_v) {
@@ -315,7 +316,7 @@ if ($opt_v) {    #
 }
 
 # disconnect from database
-close_ftndb();
+close_ftndb($dbh);
 
 close NODELIST;
 
@@ -388,34 +389,3 @@ sub get_nodelist_filename {
 
 }
 
-############################################
-# open FTN database for operations
-############################################
-sub open_ftndb {
-
-    # Open message database
-    #   Assumes that $dbname, $dbuser, & $dbpass
-    # have been set.  $dbuser must already
-    # have the priveledges to create a table.
-
-    if ($opt_v) { logging($Logfile, $progid, "Opening FTN database") }
-
-    use DBI;
-
-    ( $dbh = DBI->connect( "dbi:$dbtype:dbname=$dbname", $dbuser, $dbpass ) )
-      or die logging($Logfile, $progid, $DBI::errstr);
-
-}
-
-############################################
-# Close FTN
-############################################
-sub close_ftndb {
-
-    #
-    if ($opt_v) { logging($Logfile, $progid, "Closing FTN database") }
-
-    ( $dbh->disconnect )
-      or die logging($Logfile, $progid, $DBI::errstr);
-
-}
