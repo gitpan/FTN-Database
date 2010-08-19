@@ -10,11 +10,11 @@ FTN::Database - FTN SQL Database related operations for Fidonet/FTN related proc
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 
 =head1 SYNOPSIS
@@ -27,8 +27,10 @@ Perhaps a little code snippet.
 
     use FTN::Database;
 
-    my $foo = FTN::Database->new();
+    my $db_handle = open_ftndb($db_type, $db_name, $db_user, $db_pass);
     ...
+    close_ftndb($db_handle);
+
 
 =head1 EXPORT
 

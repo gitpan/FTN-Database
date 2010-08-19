@@ -10,11 +10,11 @@ FTN::Database::Nodelist - Fidonet/FTN Nodelist SQL Database operations.
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 
 =head1 SYNOPSIS
@@ -27,8 +27,12 @@ Perhaps a little code snippet.
 
     use FTN::Database::Nodelist;
 
-    my $foo = FTN::Database::Nodelist->new();
-    ...
+    my $db_handle = open_ftndb($db_type, $db_name, $db_user, $db_pass);
+    create_nodelist_table($db_handle, $table_name);
+    ...   (Load data to nodelist table)
+    create_ftnnode_index($db_handle, $table_name);
+    close_ftndb($db_handle);
+
 
 =head1 EXPORT
 
