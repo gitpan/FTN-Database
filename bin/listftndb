@@ -1,0 +1,167 @@
+#!/usr/bin/perl
+# listftndb - List a specific net from a specific zone of a nodelist table
+# containing information from a Fidonet/FTN St. Louis Format Nodelist to
+# a text file.
+#
+# Copyright (c) 2010 Robert James Clay.  All Rights Reserved.
+# This is free software;  you can redistribute it and/or
+# modify it under the same terms as Perl itself.
+
+use warnings;
+use strict;
+use Getopt::Std;
+use vars qw/ $opt_n $opt_o $opt_t $opt_T $opt_D $opt_u $opt_p $opt_h $opt_v $opt_x $opt_z /;
+
+use FTN::Database qw(&open_ftndb &close_ftndb);
+
+our $VERSION = 0.09;
+
+my ( $db_type, $db_name, $db_user, $db_password, $table_name, $db_handle, $sql_statement, $zone_number, $net_number, $list_file );
+
+#print @INC"\n";
+
+getopts('n:o:t:T:D:u:p:hvxz:');
+
+if ($opt_h) {
+    print "\nUsage: listftndb [-t nodelisttablename] [-T db_type] [-D db_name] [-u db_user] [-p db_password] [-z zone] [-n net] [-o outfile] [-v] [-h]...\n";
+    print "-t                nodelisttablename = defaults to \'Nodelist\'. \n";
+    print "[-T db_type]       database type;  defaults to 'SQLite'.\n\n";
+    print "[-D db_name]       database name & path;  defaults to 'ftndbtst'.\n\n";
+    print "[-u db_user]       database user;  defaults to an empty string.\n\n";
+    print "[-p db_password]       database password;  defaults to an empty string.\n\n";
+    print "[-z zone_number]      zone_number number = defaults to 1. \n";
+    print "[-n net_number]       Net number = defaults to 1. \n";
+    print "[-o outfile]      Output file (plus path) = defaults to outfile.txt in current directory.\n";
+    print "-v                Verbose option \n";
+    print "-x                Debug option \n\n";
+    exit;
+}
+
+# note that "opt_x" is the debug variable
+if ($opt_x) {
+    print "Debug flag is set\n";
+}
+
+# note that "opt_v" is the verbose variable
+if ($opt_v) {
+    print "Verbose flag is set\n";
+}
+
+#    Database type
+#    This needs to be a database type for which a DBD module exists,
+#    the type being the name as used in the DBD module.  The default
+#    type is SQLite.
+if ($opt_T) {
+    $db_type = $opt_T;
+    undef $opt_T;
+}
+else {
+    $db_type = "SQLite";    # default database type is SQLite
+    undef $opt_T;
+}
+if ($opt_v) { print "Database type being used is $db_type.\n" };
+
+#    Database name
+if ($opt_D) {
+    $db_name = $opt_D;    # this needs to be at least the filename & can also include a path
+    undef $opt_D;
+}
+else {
+    $db_name = "ftndbtst";    # default database file is in current dir
+}
+#    Database user
+if ($opt_u) {
+    $db_user = $opt_u;    # Set database user
+    undef $opt_u;
+}
+else {
+    $db_user = "";    # default user is an empty string, as default SQLite does not need it
+}
+#    Database password
+if ($opt_p) {
+    $db_password = $opt_p;    # Set database password
+    undef $opt_p;
+}
+else {
+    $db_password = "";    # default database password is an empty string, as default SQLite does not need it
+}
+
+#  nodelist table name
+if ($opt_t) {
+    if ( $opt_t =~ /\./ ) {    # period in proposed table name?
+        print "sqlite does not allow periods in table names.";
+        $opt_t=~ tr/\./_/;    # change period to underscore
+        $table_name = $opt_t;     #
+        print "Changed table name to $table_name.";
+    }
+    else {                     # no period in name
+        $table_name = $opt_t;     #  just assign to variable
+    }
+
+}
+else {
+    $table_name = "Nodelist";     # default table name
+}
+
+#    FTN Zone number
+if ($opt_z) {
+    $zone_number = $opt_z;    # Set zone number 
+    undef $opt_z;
+}
+else {
+    $zone_number = 1;    # default zone number
+}
+
+#    FTN Net number
+if ($opt_n) {
+    $net_number = $opt_n;    # Set net number 
+    undef $opt_n;
+}
+else {
+    $net_number = 1;    # default net number
+}
+
+#    Output file
+if ($opt_o) {
+    $list_file = $opt_o;    # this needs to be at least the filename & can also include a path
+    undef $opt_o;
+}
+else {
+    $list_file = "outfile.txt";    # default output file is in current dir
+}
+
+
+# connect to database
+$db_handle = FTN::Database::open_ftndb($db_type, $db_name, $db_user, $db_password);
+
+# build Select query sql statement
+$sql_statement = "SELECT * FROM $table_name WHERE zone = $zone_number and net = $net_number ";
+$sql_statement .= "ORDER by node ASC";
+
+# execute query
+my $query_handle = $db_handle->prepare($sql_statement);
+$query_handle->execute();
+
+$query_handle->bind_columns(\my($id, $type, $zone, $net, $node, $point, $region, $name, $location, $sysop, $phone, $baud, $flags, $domain, $source, $updated));
+
+local(*F);
+
+open(F, ">$list_file") or die "Cannot open $list_file\n"; 
+
+print F "Listing Zone $zone_number Net $net_number from FTN database:\n\n";
+
+while($query_handle->fetch()) {
+   print F "$zone:$net/$node, $name, $location, $sysop, $phone, $baud, $flags";
+}
+
+close(F);
+
+# finish query
+$query_handle->finish;
+undef $query_handle;
+
+# disconnect from database
+FTN::Database::close_ftndb($db_handle);
+
+exit();
+
