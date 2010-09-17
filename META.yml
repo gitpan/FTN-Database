@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                FTN-Database
-version:             0.13
+version:             0.15
 abstract:            FTN SQL Database related operations for Fidonet/FTN related processing.
 license:             perl
 author:              
@@ -8,8 +8,10 @@ author:
 generated_by:        ExtUtils::MakeMaker version 6.42
 distribution_type:   module
 requires:     
+    Config::Tiny:                  0
     DBD::SQLite:                   0
     DBI:                           0
+    File::Spec:                    0
     FTN::Log:                      0.02
     Getopt::Std:                   0
     Test::More:                    0
