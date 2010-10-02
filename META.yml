@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                FTN-Database
-version:             0.18
+version:             0.19
 abstract:            FTN SQL Database related operations for Fidonet/FTN related processing.
 license:             perl
 author:              
