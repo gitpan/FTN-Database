@@ -10,11 +10,11 @@ FTN::Database::Nodelist - Fidonet/FTN Nodelist SQL Database operations.
 
 =head1 VERSION
 
-Version 0.20
+Version 0.25
 
 =cut
 
-our $VERSION = '0.20';
+our $VERSION = '0.25';
 
 =head1 DESCRIPTION
 
@@ -69,28 +69,6 @@ sub create_nodelist_table {
 
 }
 
-=head2 drop_nodelist_table
-
-Syntax:  drop_nodelist_table($db_handle, $table_name);
-
-Drop an FTN Nodelist table from an SQL database being used for Fidonet/FTN
-processing if it exists, where $db_handle is an existing open database handle
-and $table_name is the name of the table to be dropped.
-
-=cut
-
-sub drop_nodelist_table {
-
-    my($db_handle, $table_name) = @_;
-
-    my $sql_statement = "DROP TABLE IF EXISTS $table_name";
-
-    $db_handle->do("$sql_statement") or croak($DBI::errstr);
-
-    return(0);
-    
-}
-
 =head2 create_ftnnode_index
 
 Syntax:  create_ftnnode_index($db_handle, $table_name);
@@ -112,29 +90,7 @@ sub create_ftnnode_index {
     $db_handle->do("$sql_statement") or croak($DBI::errstr);
 
     return(0);
-    
-}
 
-=head2 drop_ftnnode_index
-
-Syntax:  drop_ftnnode_index($db_handle);
-
-Drop an index named ftnnode on an FTN Nodelist table in an SQL database being
-used for Fidonet/FTN processing if it exists, where $db_handle is an existing
-open database handle.
-
-=cut
-
-sub drop_ftnnode_index {
-
-    my $db_handle = shift;
-
-    my $sql_statement = "DROP INDEX IF EXISTS ftnnode";
-
-    $db_handle->do("$sql_statement") or croak($DBI::errstr);
-
-    return(0);
-    
 }
 
 =head2 remove_ftn_domain
@@ -157,7 +113,7 @@ sub remove_ftn_domain {
     $db_handle->do("$sql_statement") or croak($DBI::errstr);
 
     return(0);
-    
+
 }
 
 =head1 EXAMPLES
@@ -168,11 +124,11 @@ the database:
 
     use FTN::Database::Nodelist;
 
-    my $db_handle = open_ftndb(\%db_option);
+    my $db_handle = open_ftn_database(\%db_option);
     create_nodelist_table($db_handle, $table_name);
     ...   (Load data to nodelist table)
     create_ftnnode_index($db_handle, $table_name);
-    close_ftndb($db_handle);
+    close_ftn_database($db_handle);
 
 =head1 AUTHOR
 
@@ -180,9 +136,16 @@ Robert James Clay, C<< <jame at rocasa.us> >>
 
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-ftn-database at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=FTN-Database>.  I will
-be notified, and then you'll automatically be notified of progress on your bug as I make changes.
+Please report any bugs or feature requests via the web interface at
+L<https://github.com/ftnpl/FTN-Database/issues>. I will be notified,
+and then you'll automatically be notified of progress on your bug
+as I make changes.
+
+Note that you can also report any bugs or feature requests to
+C<bug-ftn-database at rt.cpan.org>, or through the web interface at
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=FTN-Database>;
+however, the FTN-Database Issue tracker is preferred.
+
 
 =head1 SUPPORT
 
@@ -195,17 +158,13 @@ You can also look for information at:
 
 =over 4
 
+=item * FTN-Database issue tracker
+
+L<https://github.com/ftnpl/FTN-Database/issues>
+
 =item * RT: CPAN's request tracker
 
 L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=FTN-Database>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/FTN-Database>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/FTN-Database>
 
 =item * Search CPAN
 
@@ -215,11 +174,11 @@ L<http://search.cpan.org/dist/FTN-Database>
 
 =head1 SEE ALSO
 
- L<FTN::Database>, L<ftndbadm>, L<ftndbadm>, and L<ftnpldb-nodelist>
+ L<FTN::Database>, L<ftnpldb-admin>, and L<ftnpldb-nodelist>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2010 Robert James Clay, all rights reserved.
+Copyright 2010-2011 Robert James Clay, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
