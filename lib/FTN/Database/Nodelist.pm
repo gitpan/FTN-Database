@@ -10,11 +10,11 @@ FTN::Database::Nodelist - Fidonet/FTN Nodelist SQL Database operations.
 
 =head1 VERSION
 
-Version 0.25
+Version 0.30
 
 =cut
 
-our $VERSION = '0.25';
+our $VERSION = '0.30';
 
 =head1 DESCRIPTION
 
@@ -31,36 +31,42 @@ drop_nodelist_table(), create_ftnnode_index(), remove_ftn_domain().
 
 =head2 create_nodelist_table
 
-Syntax:  create_nodelist_table($db_handle, $table_name);
+Syntax:  create_nodelist_table($db_handle, $table_name, $db_type);
 
 Create an FTN Nodelist table in an SQL database being used for Fidonet/FTN
-processing, where $db_handle is an existing open database handle and $table_name
-is the name of the table to be created.
+processing, where $db_handle is an existing open database handle, $table_name
+is the name of the table to be created, and $db_type is the type of database.
 
 =cut
 
 sub create_nodelist_table {
 
-    my($db_handle, $table_name) = @_;
+    my($db_handle, $table_name, $db_type) = @_;
 
     my $sql_statement = "CREATE TABLE $table_name( ";
-
-    $sql_statement .= "id	INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, ";
+    # If DB type is PostgreSQL, use SERIAL; else use INTEGER & AUTOINCREMENT
+    if ($db_type eq 'Pg') {
+        $sql_statement .= "id   SERIAL PRIMARY KEY NOT NULL, ";
+    } else {
+        $sql_statement .= "id   INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, ";
+    }
     $sql_statement .= "type      VARCHAR(6) DEFAULT '' NOT NULL, ";
     $sql_statement .= "zone      SMALLINT  DEFAULT '1' NOT NULL, ";
     $sql_statement .= "net       SMALLINT  DEFAULT '1' NOT NULL, ";
     $sql_statement .= "node      SMALLINT  DEFAULT '1' NOT NULL, ";
     $sql_statement .= "point     SMALLINT  DEFAULT '0' NOT NULL, ";
     $sql_statement .= "region    SMALLINT  DEFAULT '0' NOT NULL, ";
-    $sql_statement .= "name      VARCHAR(32) DEFAULT '' NOT NULL, ";
-    $sql_statement .= "location  VARCHAR(32) DEFAULT '' NOT NULL, ";
-    $sql_statement .= "sysop     VARCHAR(32) DEFAULT '' NOT NULL, ";
-    $sql_statement .= "phone     VARCHAR(20) DEFAULT '000-000-000-000' NOT NULL, ";
+    $sql_statement .= "name      VARCHAR(48) DEFAULT '' NOT NULL, ";
+    $sql_statement .= "location  VARCHAR(48) DEFAULT '' NOT NULL, ";
+    $sql_statement .= "sysop     VARCHAR(48) DEFAULT '' NOT NULL, ";
+    $sql_statement .= "phone     VARCHAR(32) DEFAULT '000-000-000-000' NOT NULL, ";
     $sql_statement .= "baud      CHAR(6) DEFAULT '300' NOT NULL, ";
-    $sql_statement .= "flags     VARCHAR(64) DEFAULT ' ' NOT NULL, ";
+    $sql_statement .= "flags     VARCHAR(128) DEFAULT ' ' NOT NULL, ";
     $sql_statement .= "domain    VARCHAR(8) DEFAULT 'fidonet' NOT NULL, ";
+    $sql_statement .= "ftnyear   SMALLINT  DEFAULT '0' NOT NULL, ";
+    $sql_statement .= "yearday   SMALLINT  DEFAULT '0' NOT NULL, ";
     $sql_statement .= "source    VARCHAR(16) DEFAULT 'local' NOT NULL, ";
-    $sql_statement .= "updated   TIMESTAMP(14) DEFAULT '' NOT NULL ";
+    $sql_statement .= "updated   TIMESTAMP DEFAULT 'now' NOT NULL ";
     $sql_statement .= ") ";
 
     $db_handle->do("$sql_statement ") or croak($DBI::errstr);
@@ -85,7 +91,7 @@ sub create_ftnnode_index {
     my($db_handle, $table_name) = @_;
 
     my $sql_statement = "CREATE INDEX ftnnode ";
-    $sql_statement .= "ON $table_name (zone,net,node,point,domain) ";
+    $sql_statement .= "ON $table_name (zone,net,node,point,domain,ftnyear,yearday) ";
 
     $db_handle->do("$sql_statement") or croak($DBI::errstr);
 
@@ -174,11 +180,11 @@ L<http://search.cpan.org/dist/FTN-Database>
 
 =head1 SEE ALSO
 
- L<FTN::Database>, L<ftnpldb-admin>, and L<ftnpldb-nodelist>
+ L<FTN::Database>, L<ftndb-admin>, and L<ftndb-nodelist>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2010-2011 Robert James Clay, all rights reserved.
+Copyright 2010-2012 Robert James Clay, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

@@ -1,4 +1,41 @@
-Revision history for FTN-Database (ftnpldb)
+Revision history for FTN-Database (ftnpldb) application
+
+0.30    Mon Mar 19 21:41 2012
+    - Move and rewrite the doc/TODO file to the separate ToDo files
+      lib/FTNDB/ToDo.pod and lib/FTN/Database/ToDo.pod.
+    - Change ftnpldb references in files to being ftndb instead, including
+      renameing bin/ftnpldb-admin to bin/ftndb-admin and bin/ftnpldb-nodelist
+      to bin/ftndb-nodelist.
+    - Create the initial set of files for the development of a replacement
+      administration script using App::Cmd and at least initially using the
+      name 'ftndbadm'.
+
+0.29    Sun Mar 18 18:28 2012
+    - Use the database type for the 'id' field selection in the function
+      create_nodelist_table.
+
+0.28    Sun Mar 18 15:56 2012
+    - Add $ftnyear and $yearday to the list_ftn_nodelist bind_columns call in
+      ftnpldb-nodelist.
+    - Change the default to 'now' and drop the "(14)" from TIMESTAMP for the
+      field 'updated' definition.
+
+0.27    Sun Mar 18 12:56 2012
+    - Updated the doc/TODO file.
+    - lib/FTN/Database/Nodelist.pm:
+        Add the new field 'ftnyear' to the nodelist table definition.
+        Add the new field 'yearday' to the nodelist table definition.
+        Add 'ftnyear' and 'yearday' to the nodelist ftnnode index definition.
+
+0.26    Sun Mar 18 10:58 2012
+    - Update the Copyright end year to 2012.
+    - lib/FTN/Database/Nodelist.pm:
+        Change the 'name' field constraint from 32 to 48.
+        Change the 'sysop' field constraint from 32 to 48.
+        Change the 'phone' field constraint from 20 to 32.
+        Change the 'flags' field constraint from 64 to 128.
+        Change the 'location' field constraint from 32 to 48.
+    - Update the git repository URLs for their new locations in the README.
 
 0.25    Sun Nov 06 14:02 2011
     - Correct the ftnpldb-admin script to use the drop_ftn_index subroutine.
