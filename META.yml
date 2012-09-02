@@ -1,7 +1,7 @@
 --- #YAML:1.0
 name:               FTN-Database
-version:            0.30
-abstract:           ~
+version:            0.34
+abstract:           FTN SQL Database related operations for Fidonet/FTN related processing.
 author:
     - Robert James Clay <jame@rocasa.us>
 license:            perl
@@ -11,13 +11,8 @@ configure_requires:
 build_requires:
     ExtUtils::MakeMaker:  0
 requires:
-    App::Cmd:             0
-    Config::Tiny:         0
     DBD::SQLite:          0
     DBI:                  0
-    File::Spec:           0
-    FTN::Log:             0.02
-    Getopt::Std:          0
     Test::More:           0
     Test::Pod:            1.22
     Test::Pod::Coverage:  1.08
