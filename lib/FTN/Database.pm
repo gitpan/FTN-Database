@@ -10,11 +10,11 @@ FTN::Database - FTN SQL Database related operations for Fidonet/FTN related proc
 
 =head1 VERSION
 
-Version 0.34
+Version 0.40
 
 =cut
 
-our $VERSION = '0.34';
+our $VERSION = '0.40';
 
 =head1 DESCRIPTION
 
@@ -47,7 +47,7 @@ sub create_ftn_database {
 
     $db_handle->do("$sql_statement") or croak($DBI::errstr);
 
-    return(0);
+    return 1;
 
 }
 
@@ -66,6 +66,16 @@ hash contains the following items:
 The database type.  This needs to be a database type for which
 a DBD module exists, the type being the name as used in the DBD
 module.  The default type to be used is SQLite.
+
+=item   Host
+
+The host name of the database server. If blank or not provided, a driver
+specific default is used. Not required If the Type is SQLite,
+
+=item   Port
+
+The port number for the database server. If blank or not provided, a driver
+specific default is used. Not required If the Type is SQLite,
 
 =item   Name
 
@@ -91,8 +101,29 @@ sub open_ftn_database {
     # Get the hash reference to the information required for the connect
     my $option = shift;
 
+    # Construct DSN for the database connection.
+    my $db_dsn = "dbi:${$option}{'Type'}";
+    # If DB type is MySQL, use "database" instead of "dbname" in DSN.
+    if (${$option}{'Type'} eq 'mysql') {
+        $db_dsn .= ":database=${$option}{'Name'}";
+    } else {
+        $db_dsn .= ":dbname=${$option}{'Name'}";
+    }
+    # If Host option exists and is not empty, add it to DSN.
+    if (exists ${$option}{'Host'}) {
+        if (${$option}{'Host'} ne '') {
+            $db_dsn .= ":host=${$option}{'Host'}";
+        }
+    }
+    # If Port option exists and is not empty, add it to DSN.
+    if (exists ${$option}{'Port'}) {
+        if (${$option}{'Port'} ne '') {
+            $db_dsn .= ":port=${$option}{'Port'}";
+        }
+    }
+
     ( my $db_handle = DBI->connect(
-        "dbi:${$option}{'Type'}:dbname=${$option}{'Name'}",
+        $db_dsn,
         ${$option}{'User'},
         ${$option}{'Password'} ) )
     or croak($DBI::errstr);
@@ -115,7 +146,7 @@ sub close_ftn_database {
 
     ( $db_handle->disconnect ) or croak($DBI::errstr);
 
-    return(0);
+    return 1;
 
 }
 
@@ -137,28 +168,35 @@ sub drop_ftn_database {
 
     $db_handle->do("$sql_statement") or croak($DBI::errstr);
 
-    return(0);
+    return 1;
 
 }
 
 =head2 create_ftn_table
 
-Syntax:  create_ftn_table($db_handle, $table_name, $define_fields, $db_type);
+Syntax:  create_ftn_table($db_handle, $table_name, $defined_fields);
 
-Create a table in an SQL database to be used for Fidonet/FTN processing, where
+Create a table in an SQL database to be used for Fidonet/FTN processing where
 $db_handle is an existing open database handle, $table_name is the name of the
-table to be created, $define_fields is the sql to define the fields to be used
-for table except for an id field, and $db_type is the type of database.
+table to be created, and $defined_fields is the sql to define the fields to be
+used for the table except for an id field which is set according to the driver
+type.
+
+The string defining the fields could be coded like this:
+    $defined_fields = "nodeaka     VARCHAR(23) DEFAULT '' NOT NULL, ";
+    $defined_fields .= "sysop      VARCHAR(48) DEFAULT '' NOT NULL, ";
+    $defined_fields .= "system     VARCHAR(48) DEFAULT '' NOT NULL, ";
+    $defined_fields .= "location   VARCHAR(48) DEFAULT '' NOT NULL ";
 
 =cut
 
 sub create_ftn_table {
 
-    my($db_handle, $table_name, $define_fields, $db_type) = @_;
+    my($db_handle, $table_name, $define_fields) = @_;
 
     my $sql_statement = "CREATE TABLE $table_name( ";
     # If DB type is PostgreSQL, use SERIAL; else use INTEGER & AUTOINCREMENT
-    if ($db_type eq 'Pg') {
+    if ($db_handle->{Driver}->{Name} eq 'Pg') {
         $sql_statement .= "id   SERIAL PRIMARY KEY NOT NULL, ";
     } else {
         $sql_statement .= "id   INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, ";
@@ -168,7 +206,7 @@ sub create_ftn_table {
 
     $db_handle->do("$sql_statement ") or croak($DBI::errstr);
 
-    return(0);
+    return 1;
 
 }
 
@@ -190,7 +228,7 @@ sub drop_ftn_table {
 
     $db_handle->do("$sql_statement") or croak($DBI::errstr);
 
-    return(0);
+    return 1;
 
 }
 
@@ -215,7 +253,7 @@ sub create_ftn_index {
 
     $db_handle->do("$sql_statement") or croak($DBI::errstr);
 
-    return(0);
+    return 1;
 
 }
 
@@ -237,7 +275,7 @@ sub drop_ftn_index {
 
     $db_handle->do("$sql_statement") or croak($DBI::errstr);
 
-    return(0);
+    return 1;
 
 }
 
@@ -256,12 +294,12 @@ mysql database:
 
     use FTN::Database;
 
-    my $database_name = "ftndbtst";
+    my $db_name = "ftndbtst";
     my $db_option = {
-    Type = "mysql",
-    Name = "mysql",
-    User = $db_user,
-    Password = $db_password,
+        Type = "mysql",
+        Name = $db_name,
+        User = $db_user,
+        Password = $db_password,
     };
     my $db_handle = open_ftn_database(\%db_option);
     create_ftn_database($db_handle, $database_name);
@@ -273,16 +311,16 @@ using a mysql database:
 
     use FTN::Database;
 
-    my $database_name = "ftndbtst";
+    my $db_name = "ftndbtst";
     my $db_option = {
-    Type = "mysql",
-    Name = "mysql",
-    User = $db_user,
-    Password = $db_password,
+        Type = 'mysql',
+        Name = $db_name,
+        User = $db_user,
+        Password = $db_password,
     };
     my $db_handle = open_ftn_database(\%db_option);
     ...
-    drop_ftn_database($db_handle, $database_name);
+    drop_ftn_database($db_handle, $db_name);
     close_ftn_database($db_handle);
 
 
@@ -330,11 +368,12 @@ L<http://search.cpan.org/dist/FTN-Database>
 
 =head1 SEE ALSO
 
- L<DBI>, L<FTN::Database::Nodelist>, L<FTN::Database::ToDo>
+ L<DBI>, L<FTN::Database::Nodelist>, L<FTN::Database::Forum>,
+ L<FTN::Database::ToDo>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2010-2012 Robert James Clay, all rights reserved.
+Copyright 2010-2013 Robert James Clay, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

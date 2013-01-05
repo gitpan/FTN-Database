@@ -1,5 +1,38 @@
 Revision history for FTN-Database (ftnpldb) application
 
+0.40    Fri Jan  4 14:17 2013
+    - Miscellaneous updates and corrections to the documenation.  
+    - Add FTN::Database::Forum module as lib/FTN/Database/Forum.pm, and an
+      initial test script t/03-ForumBasic.t for it.
+
+0.39    Fri Jan  4 07:55 2013
+    - Construct dsn string outside of connect in open_ftn_database function.
+    - Add descriptions and handling of the Host and the Port options to the
+      open_ftn_database function.
+    - Adding database name to dsn string in open_ftn_database is dependent on
+      the database driver type.
+
+0.38    Thu Jan  3 19:11 2013
+    - Use $db_handle->{Driver}->{Name} to check the driver in create_ftn_table,
+      remove the $db_type parameter, and rewrite the function description.
+    - Rename test script t/02-NodelistDB.t to t/02-NodelistBasic.t and update 
+      its name in MANIFEST.
+
+0.37    Fri Sep 28 19:48 2012
+    - Add the initial version of the t/02-NodelistDB.t test script and list it in
+      the MANIFEST file.
+
+0.36    Fri Sep 28 18:20 2012
+    - Add 't/*.DB' to the files being cleaned in Makefile.PL
+    - Add the initial version of the t/01-basic.t test script and list it in
+      the MANIFEST file.
+
+0.35    Fri Sep 28 00:17 2012
+    - Remove the t/boilerplate.t test script as it is no longer needed.
+    - Ensure the functions in FTN::Database return true to indicate success.
+    - Add TEST::Database to the required TEST modules in the Makefile.PL file
+      and move them to BUILD_REQUIRES.
+
 0.34    Sat Sep  1 19:10 2012
     - Separate out the FTN::Database Perl Modules and the FTN Database application
       into their own distributions.
